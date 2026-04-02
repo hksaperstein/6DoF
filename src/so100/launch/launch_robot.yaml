@@ -1,0 +1,28 @@
+%YAML 1.2
+---
+launch:
+  - include:
+      file: "$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py"
+      let:
+        - name: "gz_args"
+          value: "empty.sdf"
+        - name: "sdf_filename"
+          value: $(find-pkg-share so100)/urdf/so100.urdf
+  - include:
+      file: "$(find-pkg-share ros_gz_sim)/launch/gz_spawn_model.launch.py"
+      let:
+        - name: "world"
+          value: "empty"
+        - name: "file"
+          value: "$(find-pkg-share so100)/urdf/so100.urdf"
+        - name: "entity_name"
+          value: "SO-100"
+  
+  - node:
+      name: "robot_state"
+      pkg: "robot_state_publisher"
+      exec: "robot_state_publisher"
+      param:
+        - name: "robot_description"
+          value: "$(find-pkg-share so100)/urdf/so100.urdf"
+
