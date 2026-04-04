@@ -1,4 +1,0 @@
-# Set just ROS topic name, applies to both
-- ros_topic_name: "chatter_ros"
-  ros_type_name: "std_msgs/msg/String"
-  gz_type_name: "gz.msgs.StringMsg"

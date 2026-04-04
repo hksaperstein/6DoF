@@ -1,0 +1,3 @@
+[submodule "src/ar4_ros_driver"]
+	path = src/ar4_ros_driver
+	url = git@github.com:hksaperstein/ar4_ros_driver.git
