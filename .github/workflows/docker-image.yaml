@@ -48,6 +48,6 @@ jobs:
               with:
                 context: .
                 file: ./docker/Dockerfile
-                # tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_PATH }}
-                # push: 
+                tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_PATH }}
+                push: 
 
