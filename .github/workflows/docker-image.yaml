@@ -1,5 +1,3 @@
-YAML 1.2
-
 name: Docker Image CI/CD Generation
 
 on:
