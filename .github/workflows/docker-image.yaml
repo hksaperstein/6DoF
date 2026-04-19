@@ -48,5 +48,5 @@ jobs:
               with:
                 context: .
                 file: docker/Dockerfile
-                tag: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_PATH }} 
+                tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_PATH }} 
 
