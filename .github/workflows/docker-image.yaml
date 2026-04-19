@@ -1,6 +1,21 @@
 name: Docker Image CI/CD Generation
 
 on:
+    workflow_dispatch:
+        inputs:
+            logLevel:
+                description: 'Log level'
+                required: true
+                default: 'warning'
+                type: choice
+                options:
+                - info
+                - warning
+                - debug
+            tags:
+                description: 'Test scenario tags'
+                required: false
+                type: string
     push:
         branches:
             - develop
@@ -17,6 +32,6 @@ jobs:
               with:
                     username: ${{ vars.DOCKERHUB_USERNAME  }}
                     password: ${{ secrets.DOCKERHUB_TOKEN}}
-                    
+
             - name: Build Docker Image
               run: docker build ./docker/ --file Dockerfile -t 
