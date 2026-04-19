@@ -34,4 +34,4 @@ jobs:
                     password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
             - name: Build Docker Image
-              run: docker build ./docker/ --file Dockerfile -t ${{ vars.DOCKER_USERNAME }}/${{ github.repository.name }}
+              run: docker build ./docker/ --file Dockerfile -t ${{ vars.DOCKERHUB_USERNAME }}/${{ github.repository.name }}
