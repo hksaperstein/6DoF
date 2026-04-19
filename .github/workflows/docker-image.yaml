@@ -47,7 +47,7 @@ jobs:
               uses: docker/build-push-action@v7
               with:
                 context: .
-                file: ./docker/Dockerfile
+                file: docker/Dockerfile
                 tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_PATH }}
                 push: true
 
