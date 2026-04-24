@@ -1,0 +1,54 @@
+%YAML 1.2
+---
+launch:
+
+  - arg:
+      name: "ar_model"
+      default: "mk3"
+      choice:
+        - value: "mk1"
+        - value: "mk2"
+        - value: "mk3"
+  - arg:
+      name: "tf_prefix"
+      default: ""
+
+  - arg:
+      name: "initial_joint_controllers"
+      default: "$(find-pkg-share annin_ar4_driver)/config/controllers.yaml"
+      # param:
+      #   - name: "tf_prefix"
+      #     value: ""
+  - include:
+      file: "$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py"
+      let:
+        - name: "gz_args"
+          value: "-r -v 4 --physics-engine gz-physics-bullet-featherstone-plugin $(find-pkg-share annin_ar4_gazebo)/worlds/empty.world"
+        - name: "on_exit_shutdown"
+          value: "True"
+  
+  - node:
+      pkg: "ros_gz_sim"
+      exec: "create"
+      output: "screen"
+      param:
+        - name: "name"
+          value: "mk3"
+        - name: "topic"
+          value: "robot_description"
+        
+  - node:
+      pkg: "robot_state_publisher"
+      exec: "robot_state_publisher"
+      param:
+        - name: "robot_description"
+          value: "$(command 'xacro $(find-pkg-share annin_ar4_description)/urdf/ar_gazebo.urdf.xacro ar_model:=$(var ar_model) simulation_controllers:=$(var initial_joint_controllers) tf_prefix:=$(var tf_prefix)')"
+
+          type: "str"
+          
+  # - node:
+  #     pkg: "ros_gz_bridge"
+  #     exec: "parameter_bridge"
+  #     param:
+  #       - name: "ros_args"
+  #         value: "-p config_file:=$(find-pkg-share robot)/config/gz_bridge.yaml"
