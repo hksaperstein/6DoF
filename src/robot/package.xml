@@ -9,6 +9,12 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
   <exec_depend>annin_ar4_description</exec_depend>
   <exec_depend>annin_ar4_driver</exec_depend>
   <exec_depend>annin_ar4_gazebo</exec_depend>
