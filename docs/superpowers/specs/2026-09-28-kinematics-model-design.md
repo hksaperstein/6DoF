@@ -39,6 +39,7 @@ established the following. These supersede the handoff's Wrist Geometry section.
 | F3 | `a4_yaw_to_roll` is the actual non-spherical offset. | The J4↔J5 axis distance equals `a4` exactly at every value tested; at `a4 = 0` all three wrist axes meet |
 | F4 | The handoff's proposed check — "minimum distance between the J3 and J5 axes equals the offset" — is **pose-dependent** and cannot be used as written. | Same configuration reads 100 mm at `q = 0` and 0 mm at `q = [.3,.4,-.5,.6,.7,.2]` |
 | F5 | The "two legs of one L-bracket" cannot both be perpendicular offsets between J4 and J5, because two skew lines have exactly one perpendicular distance. `a4` is one leg; the other is unrepresented in the table. | Geometric |
+| F6 | What `d3_roll_offset` actually does is slide the whole wrist assembly — J4, J5 and the TCP — laterally out of the arm plane by exactly its value. It does **not** disturb the J1/J2/J3 position chain. | J4 and J5 plane excursion equals `d3` at 25/60/120 mm, in every pose tested; J2 and J3 excursion stays 0.000 throughout |
 
 Consequences:
 
@@ -48,12 +49,49 @@ Consequences:
 - The parameter the handoff lists as the one open number deciding spherical vs.
   non-spherical (`d4_roll_offset`, `TBD`) is not that parameter. The number that
   decides it, `a4_yaw_to_roll`, already has an estimated value.
-- `d3_roll_offset` is carried in the config with status `suspect`: it is in the
-  table, its documented meaning is wrong, and no value is assigned to it. What
-  it should represent — and whether the second bracket leg needs a slot of its
-  own — is a mechanical-design question, resolved in that conversation and not
-  invented here.
+- **`d3_roll_offset` is removed** (decided 2026-09-28). Its only stated
+  justification was the non-spherical offset, which it does not provide (F2).
+  What it does provide — a lateral wrist offset (F6) — is not called for
+  anywhere in the design, and a non-zero value would cost the property that a
+  single 2D sketch exactly represents the chain out to the tool. Row 3 keeps
+  `d: 0`; the named parameter is gone. It returns if wrist packaging ever
+  demands a lateral shift, the same way `a3_wrist_pitch_to_yaw` returns if J3
+  and J4 separate — with a reason attached, rather than as an unexplained
+  degree of freedom.
+- Whether the L-bracket's second leg (F5) needs its own slot remains a
+  mechanical-design question, resolved in that conversation and not invented
+  here.
 - The sphericity check is replaced by a pose-invariant one (see Verification).
+
+## Agreed definition: `a4_yaw_to_roll`
+
+The one parameter most likely to be misunderstood between this repo, the CAD
+model and the design conversation, so it is pinned down here. All four
+statements below are measured, not asserted.
+
+1. **It is the perpendicular distance between the J4 (wrist yaw) and J5 (tool
+   roll) axes.** Measured J4↔J5 distance equals `a4` exactly at 0, 10, 45, 100
+   and 250 mm, with the two axes at 90° in every case.
+2. **It is the sole control of wrist sphericity.** At `a4 = 0` all three wrist
+   axes meet at a point and the wrist is spherical, which would restore
+   closed-form IK. At any non-zero value the decoupling fails and IK must be
+   numerical. No other parameter in the table affects this.
+3. **It is one leg of the L-bracket, and the only leg the table represents.**
+   The tool-side leg runs along the J5 axis and is currently folded into
+   `d5_tool_length`. Two skew lines admit exactly one perpendicular distance
+   (F5), so `a4` cannot represent both.
+4. **It adds to reach.** TCP distance at home goes from 461.0 mm at `a4 = 0` to
+   550.0 mm at `a4 = 100`. The offset is not purely a cost; it extends the arm
+   like a short link.
+
+**Status: decision-bearing, not yet ratified.** The handoff carries `a4` as a
+100 mm "estimate" while treating sphericity as an open question under a
+different parameter name. In fact this value already decided it. At 100 mm
+against 200 mm links — half a link length — it is large for a wrist offset, and
+the cost lands as workspace asymmetry and slower IK convergence. Ratifying or
+revising the magnitude belongs to the mechanical-design conversation; the
+visualization exists partly to inform that call, which is why `a4` gets a
+slider.
 
 ## Layout
 
@@ -85,8 +123,7 @@ parameters:
   a1_link_upper:   {value: 200.0, status: settled,     rationale: "Equal-length links as starting point"}
   a2_link_forearm: {value: 200.0, status: settled,     rationale: "Equal to upper arm; maximizes dexterous workspace"}
   a3_wrist_pitch_to_yaw: {value: 0.0, status: assumed, rationale: "J3/J4 coincident; revisit when wrist is packaged"}
-  a4_yaw_to_roll:  {value: 100.0, status: estimate,    rationale: "The non-spherical offset (F3); not yet designed"}
-  d3_roll_offset:  {value: null,  status: suspect,     rationale: "Does not do what the handoff claims (F2); meaning unresolved"}
+  a4_yaw_to_roll:  {value: 100.0, status: estimate,    rationale: "THE non-spherical offset (F3); decision-bearing, awaiting ratification"}
   d5_tool_length:  {value: 112.0, status: settled,     rationale: "Hiwonder gripper, flange to grasp point"}
 dh:
   convention: classical        # Rot(z,theta) Trans(z,d) Trans(x,a) Rot(x,alpha)
@@ -94,7 +131,7 @@ dh:
     - {joint: 0, d: d0_base_height, a: 0,               alpha:  90}
     - {joint: 1, d: 0,              a: a1_link_upper,   alpha:   0}
     - {joint: 2, d: 0,              a: a2_link_forearm, alpha:   0}
-    - {joint: 3, d: d3_roll_offset, a: a3_wrist_pitch_to_yaw, alpha: 90}
+    - {joint: 3, d: 0,              a: a3_wrist_pitch_to_yaw, alpha:  90}
     - {joint: 4, d: 0,              a: a4_yaw_to_roll,  alpha: -90}
     - {joint: 5, d: d5_tool_length, a: 0,               alpha:   0}
 ```
@@ -193,7 +230,10 @@ misleads about reach.
 
 Unresolved; the script treats them as variables, not constants.
 
-- `d3_roll_offset` — meaning unresolved (F2, F5). No value assigned.
+- `a4_yaw_to_roll` — magnitude not ratified. 100 mm is an estimate that
+  silently decided sphericity; confirm or revise it.
+- The L-bracket's second leg (F5) — unrepresented in the table; confirm whether
+  `d5_tool_length` absorbing it is correct.
 - `d0_base_height` — placeholder; settling it is the point of this work.
 - Joint limits — undefined for all six joints. Blocks the workspace sweep.
 - Joint zero offsets — unassigned. Pick a home pose, then back out the constants.
