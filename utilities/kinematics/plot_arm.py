@@ -30,9 +30,12 @@ def _set_equal_aspect(ax, reach):
     ax.set_box_aspect((1.0, 1.0, 1.0))
 
 
+D0_SLIDER_MAX = 600.0
+
+
 def main():
     base_cfg = load_config(ARM_YAML)
-    reach = sum(base_cfg.value(n) for n in
+    reach = D0_SLIDER_MAX + sum(base_cfg.value(n) for n in
                 ("a1_link_upper", "a2_link_forearm", "a4_yaw_to_roll", "d5_tool_length"))
 
     fig = plt.figure(figsize=(11, 9))
@@ -41,13 +44,15 @@ def main():
 
     sliders = {}
     for i, label in enumerate(JOINT_LABELS):
+        # +/-180 deg is a UI range, not a joint limit; limits are undefined
+        # (see spec Open items).
         sliders[label] = Slider(
             fig.add_axes([0.78, 0.88 - 0.05 * i, 0.18, 0.03]),
             label, -180.0, 180.0, valinit=0.0,
         )
     sliders["d0_base_height"] = Slider(
         fig.add_axes([0.78, 0.50, 0.18, 0.03]),
-        "d0 base", 0.0, 600.0, valinit=base_cfg.value("d0_base_height"),
+        "d0 base", 0.0, D0_SLIDER_MAX, valinit=base_cfg.value("d0_base_height"),
     )
     sliders["a4_yaw_to_roll"] = Slider(
         fig.add_axes([0.78, 0.44, 0.18, 0.03]),
