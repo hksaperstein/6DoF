@@ -113,6 +113,30 @@ def test_a4_is_exactly_the_j4_to_j5_perpendicular_distance(cfg, poses):
             assert d45 == pytest.approx(a4)
 
 
+def test_zero_q_pose_pins_every_parameter_to_its_dh_slot(cfg):
+    """The suite's primary guard on DH slot assignment and alpha signs.
+
+    At q=0 the arm lies extended along +x, so each expected coordinate is
+    checkable by hand. Moving any length between an `a` and a `d` slot, or
+    flipping the sign of any alpha, changes these numbers.
+
+    This is the zero-q pose, which coincides with the home pose only while every
+    theta_offset is zero. When a home pose is chosen and offsets are introduced
+    (see the spec's open items), these expectations must be RE-DERIVED for the
+    new zero — not weakened or deleted. Nothing else in the suite covers the
+    sign of an alpha.
+    """
+    d0 = cfg.value("d0_base_height")
+    a1 = cfg.value("a1_link_upper")
+    a2 = cfg.value("a2_link_forearm")
+    a4 = cfg.value("a4_yaw_to_roll")
+    d5 = cfg.value("d5_tool_length")
+    pose = forward_kinematics(cfg, np.zeros(6))
+    assert np.allclose(pose.joint_origins[2], [a1, 0.0, d0])
+    assert np.allclose(pose.joint_origins[3], [a1 + a2, 0.0, d0])
+    assert np.allclose(pose.tcp_position, [a1 + a2 + a4, -d5, d0])
+
+
 DELTA = 37.0  # arbitrary, non-round, so a coincidental match is unlikely
 
 
@@ -135,14 +159,10 @@ def _measure(cfg, name, q):
     raise AssertionError(f"no measurement defined for {name!r}")
 
 
-@pytest.mark.parametrize("name", [
-    "d0_base_height",
-    "a1_link_upper",
-    "a2_link_forearm",
-    "a3_wrist_pitch_to_yaw",
-    "a4_yaw_to_roll",
-    "d5_tool_length",
-])
+_PARAM_NAMES = sorted(load_config(ARM_YAML).parameters)
+
+
+@pytest.mark.parametrize("name", _PARAM_NAMES)
 def test_every_parameter_moves_the_quantity_it_is_named_for(cfg, poses, name):
     q = poses[0]
     before = _measure(cfg, name, q)
@@ -155,8 +175,14 @@ def test_every_parameter_moves_the_quantity_it_is_named_for(cfg, poses, name):
 
 
 def test_every_parameter_is_actually_referenced_by_the_table(cfg):
-    """Guards against a parameter that exists in arm.yaml but is wired to
-    nothing — the state d3_roll_offset was in before it was removed."""
+    """Guards a parameter declared in arm.yaml but wired into no DH row, so that
+    changing it moves nothing at all.
+
+    Note this is NOT the d3_roll_offset failure: that parameter WAS wired (into
+    row 3's d slot) and did move geometry — just not the geometry it was named
+    for. That class is caught by
+    test_every_parameter_moves_the_quantity_it_is_named_for.
+    """
     for name in cfg.parameters:
         bumped = cfg.with_override(**{name: cfg.value(name) + DELTA})
         moved = any(
@@ -183,6 +209,17 @@ def test_hand_written_fk_matches_roboticstoolbox(cfg, poses):
     ])
     for q in poses:
         assert np.allclose(forward_kinematics(cfg, q).tcp, robot.fkine(q).A, atol=1e-7)
+
+
+def test_consecutive_joint_axes_are_separated_by_exactly_alpha(cfg, poses):
+    """alpha_i is the twist between joint axis i and axis i+1, and is
+    pose-independent. This pins every alpha magnitude in the table without
+    reference to any home pose. Signs are pinned by the zero-q test."""
+    for q in poses:
+        axes = forward_kinematics(cfg, q).joint_axes
+        for i, row in enumerate(cfg.rows[:-1]):
+            cos = float(np.dot(axes[i], axes[i + 1]))
+            assert cos == pytest.approx(math.cos(row.alpha), abs=1e-9)
 
 
 def test_closed_form_dh_matches_elementary_factorization(cfg, poses):
