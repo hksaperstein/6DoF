@@ -12,7 +12,10 @@ from pathlib import Path
 
 import yaml
 
-NOISY_STATUSES = {"open", "suspect"}
+# "placeholder" and "assumed" are deliberately excluded: they carry real
+# values that are swept or revisited routinely, and warning on every load
+# would train the reader to ignore the open/suspect signal that does matter.
+NOISY_STATUSES = {"open", "suspect", "unknown"}
 
 
 @dataclass(frozen=True)
@@ -78,6 +81,17 @@ def _build_rows(raw_rows, params: dict[str, Parameter]) -> tuple[DHRow, ...]:
 
 def load_config(path: Path) -> ArmConfig:
     data = yaml.safe_load(Path(path).read_text())
+
+    units = data.get("units", {})
+    if units.get("length") != "mm" or units.get("angle") != "deg":
+        raise ValueError(
+            f"unsupported units {units!r}; only length: mm and angle: deg are implemented"
+        )
+    convention = data["dh"].get("convention")
+    if convention != "classical":
+        raise ValueError(
+            f"unsupported DH convention {convention!r}; only 'classical' is implemented"
+        )
 
     params: dict[str, Parameter] = {}
     for name, spec in data["parameters"].items():

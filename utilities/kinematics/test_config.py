@@ -54,6 +54,36 @@ def test_unknown_parameter_reference_is_an_error(tmp_path):
         load_config(bad)
 
 
+def test_bad_units_is_an_error(tmp_path):
+    bad = tmp_path / "bad_units.yaml"
+    bad.write_text(
+        "units: {length: in, angle: deg}\n"
+        "parameters:\n"
+        "  a1: {value: 1.0, status: settled, rationale: x}\n"
+        "dh:\n"
+        "  convention: classical\n"
+        "  rows:\n"
+        "    - {joint: 0, d: 0, a: a1, alpha: 0}\n"
+    )
+    with pytest.raises(ValueError, match="unsupported units"):
+        load_config(bad)
+
+
+def test_bad_convention_is_an_error(tmp_path):
+    bad = tmp_path / "bad_convention.yaml"
+    bad.write_text(
+        "units: {length: mm, angle: deg}\n"
+        "parameters:\n"
+        "  a1: {value: 1.0, status: settled, rationale: x}\n"
+        "dh:\n"
+        "  convention: modified\n"
+        "  rows:\n"
+        "    - {joint: 0, d: 0, a: a1, alpha: 0}\n"
+    )
+    with pytest.raises(ValueError, match="unsupported DH convention"):
+        load_config(bad)
+
+
 def test_override_of_unknown_parameter_is_an_error():
     cfg = load_config(ARM_YAML)
     with pytest.raises(KeyError, match="not_a_param"):
