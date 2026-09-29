@@ -92,3 +92,29 @@ def test_axis_distance_of_skew_lines():
         np.zeros(3), np.array([1.0, 0.0, 0.0]),
         np.array([0.0, 0.0, 2.0]), np.array([0.0, 1.0, 0.0]),
     ) == pytest.approx(2.0)
+
+
+def test_home_pose_frames_match_hand_computed_geometry(cfg):
+    """At q=0 the arm lies extended along +x, so these are checkable by
+    inspection: shoulder at base height, then two 200 mm links out along x,
+    the 20 mm wrist offset adding to x, and the tool hanging along -y."""
+    d0 = cfg.value("d0_base_height")
+    a1 = cfg.value("a1_link_upper")
+    a2 = cfg.value("a2_link_forearm")
+    a4 = cfg.value("a4_yaw_to_roll")
+    d5 = cfg.value("d5_tool_length")
+    pose = forward_kinematics(cfg, np.zeros(6))
+    assert np.allclose(pose.joint_origins[2], [a1, 0.0, d0])
+    assert np.allclose(pose.joint_origins[3], [a1 + a2, 0.0, d0])
+    assert np.allclose(pose.tcp_position, [a1 + a2 + a4, -d5, d0])
+
+
+def test_frame_accumulation_is_left_to_right(cfg):
+    """Guards the exact regression the composition order invites: building
+    the chain as dh @ T instead of T @ dh."""
+    q = np.array([0.3, -0.4, 0.5, -0.6, 0.7, -0.2])
+    pose = forward_kinematics(cfg, q)
+    expected = np.eye(4)
+    for i, row in enumerate(cfg.rows):
+        expected = expected @ dh_transform(q[i], row.d, row.a, row.alpha)
+        assert np.allclose(pose.frames[i + 1], expected)
