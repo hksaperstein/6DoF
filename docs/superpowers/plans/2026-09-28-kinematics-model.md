@@ -132,7 +132,7 @@ def test_with_override_rebuilds_rows_and_leaves_original_untouched():
     cfg = load_config(ARM_YAML)
     bumped = cfg.with_override(a4_yaw_to_roll=250.0)
     assert bumped.rows[4].a == pytest.approx(250.0)
-    assert cfg.rows[4].a == pytest.approx(100.0)
+    assert cfg.rows[4].a == pytest.approx(20.0)
 
 
 def test_unknown_parameter_reference_is_an_error(tmp_path):
@@ -925,7 +925,7 @@ Check, and report what you observe:
 1. The arm renders as a connected blue polyline from the origin to a red TCP marker.
 2. Moving the `J0` slider rotates the whole arm about the vertical axis.
 3. Moving `d0 base` raises and lowers the whole arm.
-4. Dragging `a4 offset` to 0 makes the title read `spherical wrist` and the separation read `0.0`; restoring it to 100 reads `non-spherical`.
+4. Dragging `a4 offset` to 0 makes the title read `spherical wrist` and the separation read `0.0`; restoring it to 20 reads `non-spherical`.
 5. Orange quivers appear at each joint, and J1/J2/J3 quivers stay mutually parallel as the arm moves.
 
 If the environment is headless and no window can open, say so explicitly rather than reporting success — set `MPLBACKEND=Agg`, call `redraw()` and `fig.savefig("/tmp/arm.png")` in a scratch script, and confirm from the image instead.

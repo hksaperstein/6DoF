@@ -6,8 +6,10 @@ Status: Draft, awaiting review
 ## Purpose
 
 Build a forward-kinematics model and 3D visualization of the custom 6-DoF arm,
-so the kinematic configuration can be validated numerically and `d0_base_height`
-settled before geometry is committed to CAD.
+so the kinematic configuration can be validated numerically and
+`d0_base_height` becomes **explorable** here and **settleable** once the work
+surface and mounting are defined — see the Open items on both, below —
+before geometry is committed to CAD.
 
 The DH table this is built from was derived by hand and is unverified. Verifying
 it is the first job of this work, not an assumption behind it.
@@ -43,7 +45,7 @@ established the following. These supersede the handoff's Wrist Geometry section.
 
 Consequences:
 
-- The arm remains **non-spherical** — `a4_yaw_to_roll` is 100 mm, not zero — so
+- The arm remains **non-spherical** — `a4_yaw_to_roll` is 20 mm, not zero — so
   the handoff's downstream conclusion stands unchanged: no closed-form IK,
   numerical IK seeded from current joint state, with a convergence-failure path.
 - The parameter the handoff lists as the one open number deciding spherical vs.
@@ -204,6 +206,33 @@ table, compared against the hand-written FK across random poses. Marked
 Known-by-inspection poses (arm straight up, arm horizontal) are deliberately
 **not** used as the primary test: they depend on joint zero offsets, which are an
 open item. They are added once a home pose is chosen.
+
+## Verification confidence
+
+A whole-branch review injected 13 DH errors into the table and confirmed the
+suite (as it stood before the fix wave recorded here) caught all 13. The error
+classes proven to be caught:
+
+- `a`/`d` slot swaps (rows 1 and 5)
+- alpha sign flips (rows 0 and 4)
+- `a3`/`a4` swapped between rows
+- `a1`/`a2` references swapped
+- a parameter declared but wired to no row
+- `d3_roll_offset` reintroduced
+- reversed frame composition (`dh @ T` instead of `T @ dh`)
+- a sign error in a single entry of `dh_transform`
+- a dropped degrees→radians conversion
+
+The same review found a structural gap: a **newly added** parameter, named for
+a quantity it does not control, escaped `test_verification.py` entirely,
+because the parameter-sensitivity test's parametrize list was a hardcoded
+literal rather than derived from `arm.yaml`. That gap is closed by this fix
+wave (see the plan's fix F3) — the parametrize list is now derived from
+`load_config(ARM_YAML).parameters`, so a new parameter without a wired-up
+measurement fails loudly instead of passing by omission.
+
+Record new error classes here as the suite is deliberately extended to catch
+them.
 
 ## Visualization (`plot_arm.py`)
 
