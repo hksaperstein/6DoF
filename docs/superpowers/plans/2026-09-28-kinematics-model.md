@@ -74,7 +74,7 @@ parameters:
   a1_link_upper:         {value: 200.0, status: settled,     rationale: "Equal-length links as starting point"}
   a2_link_forearm:       {value: 200.0, status: settled,     rationale: "Equal to upper arm; maximizes dexterous workspace"}
   a3_wrist_pitch_to_yaw: {value: 0.0,   status: assumed,     rationale: "J3/J4 coincident; revisit when wrist is packaged"}
-  a4_yaw_to_roll:        {value: 100.0, status: estimate,    rationale: "THE non-spherical offset (F3); decision-bearing, awaiting ratification"}
+  a4_yaw_to_roll:        {value: 20.0,  status: estimate,    rationale: "THE non-spherical offset (F3); ratified at 20 mm 2026-09-28, ~10% of a link; stays an estimate until the wrist is packaged"}
   d5_tool_length:        {value: 112.0, status: settled,     rationale: "Hiwonder gripper, flange to grasp point"}
 
 dh:
@@ -125,7 +125,7 @@ def test_alpha_converted_to_radians():
 
 def test_value_looks_up_by_name():
     cfg = load_config(ARM_YAML)
-    assert cfg.value("a4_yaw_to_roll") == pytest.approx(100.0)
+    assert cfg.value("a4_yaw_to_roll") == pytest.approx(20.0)
 
 
 def test_with_override_rebuilds_rows_and_leaves_original_untouched():
@@ -322,7 +322,7 @@ def load_config(path: Path) -> ArmConfig:
 - [ ] **Step 6: Run the tests to verify they pass**
 
 Run: `python -m pytest test_config.py -v`
-Expected: 9 passed.
+Expected: 10 passed.
 
 - [ ] **Step 7: Commit**
 
@@ -859,7 +859,7 @@ def main():
     )
     sliders["a4_yaw_to_roll"] = Slider(
         fig.add_axes([0.78, 0.44, 0.18, 0.03]),
-        "a4 offset", 0.0, 250.0, valinit=base_cfg.value("a4_yaw_to_roll"),
+        "a4 offset", 0.0, 100.0, valinit=base_cfg.value("a4_yaw_to_roll"),
     )
 
     def redraw(_=None):

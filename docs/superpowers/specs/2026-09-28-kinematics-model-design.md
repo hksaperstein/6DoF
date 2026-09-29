@@ -80,18 +80,23 @@ statements below are measured, not asserted.
    The tool-side leg runs along the J5 axis and is currently folded into
    `d5_tool_length`. Two skew lines admit exactly one perpendicular distance
    (F5), so `a4` cannot represent both.
-4. **It adds to reach.** TCP distance at home goes from 461.0 mm at `a4 = 0` to
-   550.0 mm at `a4 = 100`. The offset is not purely a cost; it extends the arm
+4. **It adds to reach.** TCP distance at home is 461.0 mm at `a4 = 0` and
+   478.5 mm at `a4 = 20`. The offset is not purely a cost; it extends the arm
    like a short link.
 
-**Status: decision-bearing, not yet ratified.** The handoff carries `a4` as a
+**Status: ratified at 20 mm (2026-09-28).** The handoff carried `a4` as a
 100 mm "estimate" while treating sphericity as an open question under a
-different parameter name. In fact this value already decided it. At 100 mm
-against 200 mm links — half a link length — it is large for a wrist offset, and
-the cost lands as workspace asymmetry and slower IK convergence. Ratifying or
-revising the magnitude belongs to the mechanical-design conversation; the
-visualization exists partly to inform that call, which is why `a4` gets a
-slider.
+different parameter name — so that value had already decided it, unnoticed. At
+100 mm against 200 mm links it was half a link length, large for a wrist
+offset. Revised to **20 mm**, or 10% of a link, which is the conventional range.
+
+The magnitude is a packaging choice, not an analytical one. Any non-zero `a4`
+forfeits closed-form IK; there is no partial credit for a small offset. The
+reason to accept that cost is that three axes cannot physically intersect at a
+point once real bearings and gearboxes occupy the wrist, so the design question
+is "how little offset can the packaging live with", not "how much offset do we
+want". 20 mm is a starting estimate on that basis and stays `status: estimate`
+until the wrist is actually packaged.
 
 ## Layout
 
@@ -125,7 +130,7 @@ parameters:
   a1_link_upper:   {value: 200.0, status: settled,     rationale: "Equal-length links as starting point"}
   a2_link_forearm: {value: 200.0, status: settled,     rationale: "Equal to upper arm; maximizes dexterous workspace"}
   a3_wrist_pitch_to_yaw: {value: 0.0, status: assumed, rationale: "J3/J4 coincident; revisit when wrist is packaged"}
-  a4_yaw_to_roll:  {value: 100.0, status: estimate,    rationale: "THE non-spherical offset (F3); decision-bearing, awaiting ratification"}
+  a4_yaw_to_roll:  {value: 20.0,  status: estimate,    rationale: "THE non-spherical offset (F3); ratified at 20 mm 2026-09-28, ~10% of a link"}
   d5_tool_length:  {value: 112.0, status: settled,     rationale: "Hiwonder gripper, flange to grasp point"}
 dh:
   convention: classical        # Rot(z,theta) Trans(z,d) Trans(x,a) Rot(x,alpha)
@@ -232,10 +237,13 @@ misleads about reach.
 
 Unresolved; the script treats them as variables, not constants.
 
-- `a4_yaw_to_roll` — magnitude not ratified. 100 mm is an estimate that
-  silently decided sphericity; confirm or revise it.
-- The L-bracket's second leg (F5) — unrepresented in the table; confirm whether
-  `d5_tool_length` absorbing it is correct.
+- `a4_yaw_to_roll` — ratified at 20 mm, but still `status: estimate`: the real
+  value is whatever the packaged wrist turns out to need.
+- The L-bracket's second leg (F5) — decided 2026-09-28 to leave
+  `d5_tool_length` absorbing it, and revisit if the tool transform needs to be
+  separated from the bracket. Note the cost of the absorption: swapping to the
+  second tool (the printed XYZ indicator) will need a different `d5`, and that
+  number will silently carry the bracket leg with it.
 - `d0_base_height` — placeholder; settling it is the point of this work.
 - Joint limits — undefined for all six joints. Blocks the workspace sweep.
 - Joint zero offsets — unassigned. Pick a home pose, then back out the constants.
