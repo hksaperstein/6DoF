@@ -1,0 +1,24 @@
+# Kinematic configuration for the custom 6-DoF arm.
+# Lengths in mm. Angles in DEGREES here only; converted to radians on load.
+# Joint indices are 0-based and never renumbered.
+units: {length: mm, angle: deg}
+
+parameters:
+  d0_base_height:        {value: 200.0, status: placeholder, rationale: "To be explored; sweep it"}
+  a1_link_upper:         {value: 200.0, status: settled,     rationale: "Equal-length links as starting point"}
+  a2_link_forearm:       {value: 200.0, status: settled,     rationale: "Equal to upper arm; maximizes dexterous workspace"}
+  a3_wrist_pitch_to_yaw: {value: 0.0,   status: assumed,     rationale: "J3/J4 coincident; revisit when wrist is packaged"}
+  a4_yaw_to_roll:        {value: 100.0, status: estimate,    rationale: "THE non-spherical offset (F3); decision-bearing, awaiting ratification"}
+  d5_tool_length:        {value: 112.0, status: settled,     rationale: "Hiwonder gripper, flange to grasp point"}
+
+dh:
+  convention: classical   # Rot(z,theta) Trans(z,d) Trans(x,a) Rot(x,alpha)
+  # theta is omitted: row i always takes joint variable q[i]. A constant
+  # theta_offset per joint is added here once a home pose is chosen.
+  rows:
+    - {joint: 0, d: d0_base_height, a: 0,                     alpha:  90}
+    - {joint: 1, d: 0,              a: a1_link_upper,         alpha:   0}
+    - {joint: 2, d: 0,              a: a2_link_forearm,       alpha:   0}
+    - {joint: 3, d: 0,              a: a3_wrist_pitch_to_yaw, alpha:  90}
+    - {joint: 4, d: 0,              a: a4_yaw_to_roll,        alpha: -90}
+    - {joint: 5, d: d5_tool_length, a: 0,                     alpha:   0}

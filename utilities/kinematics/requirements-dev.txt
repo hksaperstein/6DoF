@@ -1,0 +1,3 @@
+-r requirements.txt
+pytest>=7.4
+roboticstoolbox-python>=1.1
