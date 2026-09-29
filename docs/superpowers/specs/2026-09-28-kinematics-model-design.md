@@ -103,7 +103,9 @@ utilities/
     config.py               # load + validate arm.yaml into a typed ArmConfig
     kinematics.py           # forward kinematics; pure numpy, no I/O, no plotting
     plot_arm.py             # interactive 3D visualization; entry point
-    test_kinematics.py      # pytest
+    test_config.py          # loader behaviour
+    test_kinematics.py      # FK correctness
+    test_verification.py    # verifies the DH table itself, not the code
 ```
 
 Scripts live under `utilities/`, never in `requirements/`, matching the
