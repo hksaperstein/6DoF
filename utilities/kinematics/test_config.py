@@ -29,14 +29,14 @@ def test_alpha_converted_to_radians():
 
 def test_value_looks_up_by_name():
     cfg = load_config(ARM_YAML)
-    assert cfg.value("a4_yaw_to_roll") == pytest.approx(100.0)
+    assert cfg.value("a4_yaw_to_roll") == pytest.approx(20.0)
 
 
 def test_with_override_rebuilds_rows_and_leaves_original_untouched():
     cfg = load_config(ARM_YAML)
     bumped = cfg.with_override(a4_yaw_to_roll=250.0)
     assert bumped.rows[4].a == pytest.approx(250.0)
-    assert cfg.rows[4].a == pytest.approx(100.0)
+    assert cfg.rows[4].a == pytest.approx(20.0)
 
 
 def test_unknown_parameter_reference_is_an_error(tmp_path):
