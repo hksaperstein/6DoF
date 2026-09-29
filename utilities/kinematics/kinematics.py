@@ -33,21 +33,22 @@ class Pose:
 
     @property
     def joint_origins(self) -> np.ndarray:
-        """(7, 3) — base origin, each joint origin, then the TCP."""
+        """(7, 3) — the base (which is also J0's origin), the J1..J5
+        origins, then the TCP."""
         return self.frames[:, :3, 3]
 
     @property
     def joint_axes(self) -> np.ndarray:
         """(6, 3) unit vectors. Joint i's axis is z of the frame before it."""
-        return self.frames[:6, :3, 2]
+        return self.frames[:-1, :3, 2]
 
     @property
     def tcp(self) -> np.ndarray:
-        return self.frames[6]
+        return self.frames[-1]
 
     @property
     def tcp_position(self) -> np.ndarray:
-        return self.frames[6][:3, 3]
+        return self.frames[-1][:3, 3]
 
     def joint_axis(self, i: int) -> tuple[np.ndarray, np.ndarray]:
         """(point on the axis, unit direction) for joint i."""
