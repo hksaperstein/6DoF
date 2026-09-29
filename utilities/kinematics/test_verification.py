@@ -183,3 +183,38 @@ def test_hand_written_fk_matches_roboticstoolbox(cfg, poses):
     ])
     for q in poses:
         assert np.allclose(forward_kinematics(cfg, q).tcp, robot.fkine(q).A, atol=1e-7)
+
+
+def test_closed_form_dh_matches_elementary_factorization(cfg, poses):
+    """Independent derivation of the same transform. The classical DH row is
+    DEFINED as Rot(z,theta) Trans(z,d) Trans(x,a) Rot(x,alpha); dh_transform
+    ships the multiplied-out closed form. Building it from the four elementary
+    matrices instead exercises a different derivation path, so a transcription
+    error in any entry of the closed-form 4x4 cannot survive both."""
+    def rot_z(t):
+        c, s = np.cos(t), np.sin(t)
+        T = np.eye(4)
+        T[:2, :2] = [[c, -s], [s, c]]
+        return T
+
+    def rot_x(t):
+        c, s = np.cos(t), np.sin(t)
+        T = np.eye(4)
+        T[1:3, 1:3] = [[c, -s], [s, c]]
+        return T
+
+    def trans_z(d):
+        T = np.eye(4)
+        T[2, 3] = d
+        return T
+
+    def trans_x(a):
+        T = np.eye(4)
+        T[0, 3] = a
+        return T
+
+    for q in poses:
+        expected = np.eye(4)
+        for i, row in enumerate(cfg.rows):
+            expected = expected @ rot_z(q[i]) @ trans_z(row.d) @ trans_x(row.a) @ rot_x(row.alpha)
+        assert np.allclose(forward_kinematics(cfg, q).tcp, expected, atol=1e-9)
